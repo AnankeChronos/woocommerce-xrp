@@ -24,13 +24,19 @@ if ( ! in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins',
     return;
 }
 
+include_once dirname( __FILE__ ) . '/includes/class-curl.php';
+include_once dirname( __FILE__ ) . '/includes/class-webhooks.php';
+include_once dirname( __FILE__ ) . '/includes/class-rates.php';
+
+
 /**
- * Translate & make XRP flow through all the world. @AnankeChronos
+ * Load translations.
  */
 add_action( 'plugins_loaded', 'wc_gateway_xrp_load_text_domain' );
 function wc_gateway_xrp_load_text_domain() {
-load_plugin_textdomain( 'wc-gateway-xrp', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
+    load_plugin_textdomain( 'wc-gateway-xrp', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
 }
+
 
 /**
  * XRP Payment Gateway
@@ -45,7 +51,6 @@ load_plugin_textdomain( 'wc-gateway-xrp', false, dirname( plugin_basename( __FIL
  * @author      Jesper Wallin
  */
 add_action( 'plugins_loaded', 'wc_gateway_xrp_init', 11 );
-
 function wc_gateway_xrp_init() {
 
     class WC_Gateway_XRP extends WC_Payment_Gateway {
@@ -54,7 +59,7 @@ function wc_gateway_xrp_init() {
             $this->id                    = 'xrp';
             $this->has_fields            = false;
             $this->method_title          = __( 'XRP', 'wc-gateway-xrp' );
-            $this->method_description    = __( '<img src="./wp-content/plugins/woocommerce-xrp-master/images/WooXRPGate.png" align="left"><p style="line-height:43px;">Let your customers pay using the XRP Ledger.</p>', 'wc-gateway-xrp' );
+            $this->method_description    = __( 'Let your customers pay using the XRP Ledger.', 'wc-gateway-xrp' );
 
             $this->init_settings();
 
@@ -73,19 +78,18 @@ function wc_gateway_xrp_init() {
                 return true;
             }
 
-            if ( ! function_exists('curl_init') ) {
+            if ( ! function_exists( 'curl_init' ) ) {
                 add_action( 'admin_notices', array( $this, 'require_curl' ) );
+            } elseif ( empty( $this->settings['xrp_account'] ) || empty( $this->settings['xrpl_webhook_api_pub'] ) || empty( $this->settings['xrpl_webhook_api_priv'] ) ) {
+                 add_action( 'admin_notices', array( $this, 'require_xrp' ) );
+            } elseif ( $this->check_webhooks() === false ) {
+                 add_action( 'admin_notices', array( $this, 'invalid_xrp' ) );
             }
 
             if ( ! in_array( get_woocommerce_currency(), array( 'EUR', 'USD' ) ) ) {
                 add_action( 'admin_notices', array( $this, 'supported_currencies' ) );
             }
 
-            if ( empty( $this->settings['xrp_account'] ) || empty( $this->settings['xrpl_webhook_api_pub'] ) || empty( $this->settings['xrpl_webhook_api_priv'] ) ) {
-                 add_action( 'admin_notices', array( $this, 'require_xrp' ) );
-            } elseif ( $this->check_webhooks() === false ) {
-                 add_action( 'admin_notices', array( $this, 'invalid_xrp' ) );
-            }
 
             $this->init_form_fields();
         }
@@ -95,7 +99,7 @@ function wc_gateway_xrp_init() {
          * Display an error that the current currency is unsupported.
          */
         public function supported_currencies() {
-           _e( '<div class="notice notice-error"><p>Your current currency is not supported yet. Please use <b>USD</b> or <b>EUR</b> with for now.</p></div>', 'wc-gateway-xrp' );
+            _e( '<div class="notice notice-error"><p>Your current currency is not supported yet. Please use <b>USD</b> or <b>EUR</b> with for now.</p></div>', 'wc-gateway-xrp' );
         }
 
 
@@ -103,7 +107,7 @@ function wc_gateway_xrp_init() {
          * Display an error that all XRP related data is required.
          */
         public function require_xrp() {
-           _e( '<div class="notice notice-error"><p>Before you can use this payment gateway, you <b>must</b> specify a <b>XRP Account</b> and your <b>XRPL Webhook</b> details.</p></div>', 'wc-gateway-xrp' );
+            _e( '<div class="notice notice-error"><p>Before you can use the XRP payment gateway, you <b>must</b> specify a <b>XRP Account</b> and your <b>XRPL Webhook</b> details.</p></div>', 'wc-gateway-xrp' );
         }
 
 
@@ -111,7 +115,7 @@ function wc_gateway_xrp_init() {
          * Display an error that the XRP details is invalid.
          */
         public function invalid_xrp() {
-           _e( '<div class="notice notice-error"><p>The specified <b>XRP Account</b> and/or <b>XRPL Webhook</b> details are invalid. Please correct these for the <b>XRP Payment Gateway</b> to work properly.</p></div>', 'wc-gateway-xrp' );
+            _e( '<div class="notice notice-error"><p>The specified <b>XRP Account</b> and/or <b>XRPL Webhook</b> details are invalid. Please correct these for the <b>XRP Payment Gateway</b> to work properly.</p></div>', 'wc-gateway-xrp' );
         }
 
 
@@ -119,7 +123,7 @@ function wc_gateway_xrp_init() {
          * Display an error explaining that cURL is required.
          */
         public function require_curl() {
-           _e( '<div class="notice notice-error"><p>You must have <b>cURL</b> installed for the <b>XRP Payment Gateway</b> to work properly.</p></div>', 'wc-gateway-xrp' );
+            _e( '<div class="notice notice-error"><p>You must have <b>cURL</b> installed for the <b>XRP Payment Gateway</b> to work properly.</p></div>', 'wc-gateway-xrp' );
         }
 
 
@@ -129,7 +133,7 @@ function wc_gateway_xrp_init() {
         public function process_admin_options() {
             parent::process_admin_options();
 
-            wp_redirect($_SERVER['REQUEST_URI']);
+            wp_redirect( $_SERVER['REQUEST_URI'] );
             exit;
         }
 
@@ -142,36 +146,35 @@ function wc_gateway_xrp_init() {
                 return false;
             }
 
-            include_once dirname( __FILE__ ) . '/includes/class-webhooks.php';
             $wh = new Webhook( $this->settings['xrpl_webhook_api_pub'], $this->settings['xrpl_webhook_api_priv'] );
 
-            /* subscriptions */
-            if ( ! ( $subs = $wh->subscriptions() ) ) {
-                return false;
-            }
-            $exists = false;
-            foreach ( $subs as $sub ) {
-                if ( $sub->address == $this->settings['xrp_account'] ) {
-                    $exists = true;
-                    break;
-                }
-            }
-            if ($exists == false && $wh->add_subscription( $this->settings['xrp_account'] ) == false ) {
-                return false;
-            }
-
             /* webhooks */
-            if ( ! ( $hooks = $wh->webhooks() ) ) {
+            if ( ( $hooks = $wh->webhooks() ) === false ) {
                 return false;
             }
             $url = WC()->api_request_url( 'WC_Gateway_XRP' );
             $exists = false;
             foreach ( $hooks as $hook ) {
                 if ( $hook->url == $url ) {
+                    $exists = true;
+                    break;
+                }
+            }
+            if ($exists === false && $wh->add_webhook( $url ) === false ) {
+                return false;
+            }
+
+            /* subscriptions */
+            if ( ( $subs = $wh->subscriptions() ) === false ) {
+                return false;
+            }
+            $exists = false;
+            foreach ( $subs as $sub ) {
+                if ( $sub->address == $this->settings['xrp_account'] ) {
                     return true;
                 }
             }
-            if ($exists == false && $wh->add_webhook( $url ) == false ) {
+            if ($exists === false && $wh->add_subscription( $this->settings['xrp_account'] ) === false ) {
                 return false;
             }
 
@@ -190,7 +193,6 @@ function wc_gateway_xrp_init() {
         /**
          * Initialize Gateway Settings Form Fields
          */
-
         public function init_form_fields() {
 
             $this->form_fields = apply_filters( 'wc_xrp_form_fields', array(
@@ -213,7 +215,7 @@ function wc_gateway_xrp_init() {
                     'title'       => __( 'Description', 'wc-gateway-xrp' ),
                     'type'        => 'textarea',
                     'description' => __( 'Payment method description that the customer will see on your checkout.', 'wc-gateway-xrp' ),
-                    'default'     => __( 'Pay using the XRP ledger.', 'wc-gateway-xrp' ),
+                    'default'     => __( 'Payment instruction will be shown once you\'ve placed your order.', 'wc-gateway-xrp' ),
                     'desc_tip'    => true,
                 ),
 
@@ -264,6 +266,23 @@ function wc_gateway_xrp_init() {
                     'type'        => 'text',
                     'description' => __( 'Which XRP node to use when checking our balance.', 'wc-gateway-xrp' ),
                     'default'     => 'https://s2.ripple.com:51234',
+                    'desc_tip'    => true,
+                ),
+
+                'exchange' => array(
+                    'title'       => __( 'Exchange', 'wc-gateway-xrp' ),
+                    'type'        => 'select',
+                    'description' => __( 'Which exchange to use when fetching the XRP rate.', 'wc-gateway-xrp' ),
+                    'options'     => array(
+                        'binance'  => 'Binance',
+                        'bitfinex' => 'Bitfinex',
+                        'bitmex'   => 'BitMEX',
+                        'bitstamp' => 'Bitstamp Ltd',
+                        'bittrex'  => 'Bittrex',
+                        'kraken'   => 'Kraken',
+                    ),
+                    'default'     => 'bitstamp',
+                    'desc_tip'    => true,
                 ),
 
                 'tx_limit' => array(
@@ -271,49 +290,28 @@ function wc_gateway_xrp_init() {
                     'type'        => 'number',
                     'description' => __( 'The number of transactions to fetch from the ledger each time we check for new payments.', 'wc-gateway-xrp' ),
                     'default'     => 10,
+                    'desc_tip'    => true,
                 ),
             ) );
         }
 
 
+        /**
+         * Process the order and calculate the price in XRP.
+         */
         public function process_payment( $order_id ) {
-            if ( ! function_exists('curl_init') ) {
-                return false;
-            }
-
             $order = wc_get_order( $order_id );
 
             /* specity where to obtain our rates from. */
-            /* todo: make this a select and be able to pick from different sources. */
-            if ( $order->get_currency() === 'EUR' ) {
-                $rates = 'https://www.bitstamp.net/api/v2/ticker/xrpeur/';
-            } elseif ( $order->get_currency() === 'USD' ) {
-                $rates = 'https://www.bitstamp.net/api/v2/ticker/xrpusd/';
-            } else {
-                return false;
-            }
+            $rates = new Rates( $order->get_currency() );
+            $rate  = $rates->get_rate( $this->settings['exchange'] );
 
-            /* use curl, if available. */
-            if ( ! ($ch = curl_init( $rates )) ) {
-                return false;
-            }
-
-            curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
-            curl_setopt( $ch, CURLOPT_HEADER, false );
-            curl_setopt( $ch, CURLOPT_HTTPGET, true );
-
-            $body = curl_exec($ch);
-            $info = curl_getinfo($ch);
-
-            curl_close($ch);
-
-            /* todo: perhaps add some caching here in case bitstamp is offline. */
-            if ( ($rate = json_decode( $body )) === null ) {
+            if ( $rate === false ) {
                 return false;
             }
 
             /* calculate the amount in XRP. */
-            $xrp = round( ceil( ( $order->get_total() / $rate->last ) * 1000000 ) / 1000000, 6);
+            $xrp = round( ceil( ( $order->get_total() / $rate ) * 1000000 ) / 1000000, 6);
 
             /* try to get the destination tag as random as possible. */
             if ( function_exists( 'random_int' ) ) {
@@ -353,13 +351,11 @@ function wc_gateway_xrp_init() {
             if ( empty( $node ) ) {
                 $node = 'https://s2.ripple.com:51234';
             }
-            if ( ! ($ch = curl_init( $node )) ) {
-                return false;
-            }
 
             $account = $this->get_option( 'xrp_account' );
             if ( empty( $account ) ) {
-                return false;
+                echo "no account specified";
+                exit;
             }
 
             $limit = (int)$this->get_option( 'tx_limit' );
@@ -377,23 +373,18 @@ function wc_gateway_xrp_init() {
                 ]]
             ];
 
-            curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
-            curl_setopt( $ch, CURLOPT_HEADER, false );
-            curl_setopt( $ch, CURLOPT_POSTFIELDS, json_encode($payload) );
+            $curl = new Curl( $node );
+            $curl->post( json_encode( $payload ) );
 
-            $data = curl_exec( $ch );
-            $info = curl_getinfo( $ch );
-
-            curl_close( $ch );
-
-            if ($info['http_code'] !== 200 || ($res = json_decode( $data )) == null ) {
-                return false;
+            if ( $curl->info['http_code'] !== 200 || ( $res = json_decode( $curl->data ) ) == null ) {
+                echo "unable to reach the XRP ledger.";
+                exit;
             }
 
-            $rev = array_reverse($res->result->transactions);
+            $rev = array_reverse( $res->result->transactions );
 
-            foreach ($rev as $tx) {
-                if ( $tx->tx->TransactionType != 'Payment' || $tx->tx->Destination != $account || !isset($tx->tx->DestinationTag) || $tx->tx->DestinationTag == 0 ) {
+            foreach ( $rev as $tx ) {
+                if ( $tx->tx->TransactionType != 'Payment' || $tx->tx->Destination != $account || !isset( $tx->tx->DestinationTag ) || $tx->tx->DestinationTag == 0 ) {
                     continue;
                 }
                 $orders = wc_get_orders( array( 'destination_tag' => $tx->tx->DestinationTag ) );
@@ -409,11 +400,16 @@ function wc_gateway_xrp_init() {
                 $orders[0]->update_meta_data( 'last_sequence', $tx->tx->Sequence );
 
                 /* store the tx hash */
-                $txlist = explode( ',', $orders[0]->get_meta( 'tx' ) );
+                $txlist = $orders[0]->get_meta( 'tx' );
+                if ( empty($txlist) ) {
+                    $txlist = array();
+                } else {
+                    $txlist = explode( ',', $txlist );
+                }
                 if ( ! in_array( $tx->tx->hash, $txlist ) ) {
                     array_push( $txlist, $tx->tx->hash );
                 }
-                $orders[0]->update_meta_data( 'tx', implode(',', $txlist) );
+                $orders[0]->update_meta_data( 'tx', implode( ',', $txlist ) );
 
                 /* update the delivered_amount */
                 $delivered_amount = $orders[0]->get_meta( 'delivered_amount' );
@@ -423,12 +419,13 @@ function wc_gateway_xrp_init() {
 
                 $total_amount = $orders[0]->get_meta( 'total_amount' );
 
-                if ($delivered_amount >= $total_amount) {
+                if ( $delivered_amount >= $total_amount ) {
                     $orders[0]->update_status( 'processing', __( sprintf( '%s XRP received', $delivered_amount ), 'wc-gateway-xrp' ) );
                     $orders[0]->reduce_order_stock();
                 }
             }
 
+            echo "ok";
             exit;
         }
     }
@@ -448,6 +445,7 @@ add_filter( 'woocommerce_payment_gateways', 'wc_xrp_add_to_gateways' );
 /**
  * Add custom meta_query so we can search by destination_tag.
  */
+add_filter( 'woocommerce_order_data_store_cpt_get_orders_query', 'handle_destination_tag_query', 10, 2 );
 function handle_destination_tag_query( $query, $query_vars ) {
     if ( ! empty( $query_vars['destination_tag'] ) ) {
         $query['meta_query'][] = array(
@@ -458,12 +456,13 @@ function handle_destination_tag_query( $query, $query_vars ) {
 
     return $query;
 }
-add_filter( 'woocommerce_order_data_store_cpt_get_orders_query', 'handle_destination_tag_query', 10, 2 );
 
 
 /*
  * Customize the "thank you" page in order to display payment info.
  */
+add_action( 'woocommerce_thankyou', 'thankyou_xrp_payment_info', 10 );
+add_action( 'woocommerce_view_order', 'thankyou_xrp_payment_info', 10 );
 function thankyou_xrp_payment_info( $order_id ) {
     $gateway = new WC_Gateway_XRP;
     $remaining = round( (float)get_post_meta( $order_id, 'total_amount', true ) - (float)get_post_meta( $order_id, 'delivered_amount', true ) , 6 );
@@ -477,8 +476,8 @@ function thankyou_xrp_payment_info( $order_id ) {
     <table class="woocommerce-table shop_table xrp_info">
         <tbody>
             <tr>
-                <th><?php _e( 'XRP Account:', 'wc-gateway-xrp' ); ?></th>
-                <td id="xrp_account"><?php echo _x( $gateway->settings['xrp_account'] ) ?></td>
+                <th><?php _e( 'XRP Account', 'wc-gateway-xrp' ); ?></th>
+                <td id="xrp_account"><?php echo _x( $gateway->settings['xrp_account'] , 'wc-gateway-xrp' ) ?></td>
             </tr>
             <tr>
                 <th><?php _e( 'Destination tag', 'wc-gateway-xrp' ); ?></th>
@@ -504,22 +503,23 @@ function thankyou_xrp_payment_info( $order_id ) {
     </table>
     <?php
 
-    if (get_post_status( $order_id ) == 'wc-pending') {
-        wp_enqueue_script( 'ajax-script', plugins_url( '/js/checkout.js', __FILE__ ), array('jquery') );
+    if (get_post_status( $order_id ) == 'wc-pending' ) {
+        wp_enqueue_script( 'ajax-script', plugins_url( '/js/checkout.js', __FILE__ ), array( 'jquery' ) );
         wp_localize_script( 'ajax-script', 'ajax_object', array( 'ajax_url' => admin_url( 'admin-ajax.php' ), 'order_id' => $order_id ) );
     }
 }
-add_action( 'woocommerce_thankyou', 'thankyou_xrp_payment_info', 10 );
-add_action( 'woocommerce_view_order', 'thankyou_xrp_payment_info', 10 );
 
-// Same handler function...
+
+/**
+ * Handle the AJAX callback to reload checkout details.
+ */
 add_action( 'wp_ajax_xrp_checkout', 'xrp_checkout_handler' );
 add_action( 'wp_ajax_nopriv_xrp_checkout', 'xrp_checkout_handler' );
 function xrp_checkout_handler() {
     $order = wc_get_order( $_POST['order_id'] );
 
-    if ( $order == false) {
-        header('HTTP/1.0 404 Not Found');
+    if ( $order == false ) {
+        header( 'HTTP/1.0 404 Not Found' );
         wp_die();
     }
 
@@ -546,6 +546,9 @@ function xrp_checkout_handler() {
 }
 
 
+/**
+ * Generate a QR-code for the XRP payment.
+ */
 function xrp_qr( $account, $tag, $amount ) {
     $data = sprintf(
         'https://ripple.com/send?to=%s&dt=%s&amount=%s',
@@ -560,6 +563,9 @@ function xrp_qr( $account, $tag, $amount ) {
 }
 
 
+/**
+ * Ugly helper to print pretty statuses.
+ */
 function wc_pretty_status( $status ) {
     switch ( $status ) {
         case 'wc-pending':

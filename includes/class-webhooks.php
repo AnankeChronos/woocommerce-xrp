@@ -7,6 +7,7 @@ class Webhook {
     public $base = 'https://webhook.xrpayments.co/';
     public $error = null;
 
+
     public function __construct( $pub, $secret ) {
         $this->pub = $pub;
         $this->secret = $secret;
@@ -15,17 +16,6 @@ class Webhook {
 
     public function subscriptions() {
         if ( empty( $this->pub ) || empty( $this->secret ) ) {
-            $this->error = 'Please specify both the API key and secret';
-            return false;
-        }
-
-        if ( ! function_exists( 'curl_init' ) ) {
-            $this->error = 'cURL is missing!';
-            return false;
-        }
-
-        if ( ! ( $ch = curl_init( $this->base . 'api/v1/subscriptions' ) ) ) {
-            $this->error = 'Unable to initiate cURL';
             return false;
         }
 
@@ -34,16 +24,12 @@ class Webhook {
             'x-api-secret: ' . $this->secret
         );
 
-        curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
-        curl_setopt( $ch, CURLOPT_HEADER, false );
-        curl_setopt( $ch, CURLOPT_HTTPGET, true );
-        curl_setopt( $ch, CURLOPT_HTTPHEADER, $headers );
+        $curl = new Curl( $this->base . 'api/v1/subscriptions', $headers );
+        if ( $curl->get() === false ) {
+            return false;
+        }
 
-        $data = curl_exec( $ch );
-        $info = curl_getinfo( $ch );
-
-        if ( $info['http_code'] !== 200 || ( $res = json_decode( $data ) ) == null ) {
-            $this->error = 'Unable to talk to the webhook API endpoint. Please verify that you\'ve specified the correct API key and secret.';
+        if ( $curl->info['http_code'] !== 200 || ( $res = json_decode( $curl->data ) ) == null ) {
             return false;
         }
 
@@ -53,17 +39,6 @@ class Webhook {
 
     public function add_subscription( $address ) {
         if ( empty( $address ) || empty( $this->pub ) || empty( $this->secret ) ) {
-            $this->error = 'Please specify both the API key and secret';
-            return false;
-        }
-
-        if ( ! function_exists( 'curl_init' ) ) {
-            $this->error = 'cURL is missing!';
-            return false;
-        }
-
-        if ( ! ( $ch = curl_init( $this->base . 'api/v1/subscriptions' ) ) ) {
-            $this->error = 'Unable to initiate cURL';
             return false;
         }
 
@@ -72,20 +47,14 @@ class Webhook {
             'x-api-key: ' . $this->pub,
             'x-api-secret: ' . $this->secret
         );
-        $payload = array(
-            'address' => trim( $address )
-        );
-        curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
-        curl_setopt( $ch, CURLOPT_HEADER, false );
-        curl_setopt( $ch, CURLOPT_HTTPHEADER, $headers );
-        curl_setopt( $ch, CURLOPT_POST, true );
-        curl_setopt( $ch, CURLOPT_POSTFIELDS, json_encode( $payload ) );
+        $payload = json_encode( array( 'address' => trim( $address ) ) );
 
-        $data = curl_exec( $ch );
-        $info = curl_getinfo( $ch );
+        $curl = new Curl( $this->base . 'api/v1/subscriptions', $headers );
+        if ( $curl->post( $payload ) === false ) {
+            return false;
+        }
 
-        if ( $info['http_code'] !== 200 || ( $res = json_decode( $data ) ) == null ) {
-            $this->error = 'Unable to talk to the webhook API endpoint. Please verify that you\'ve specified the correct API key and secret.';
+        if ( $curl->info['http_code'] !== 200 || ( $res = json_decode( $curl->data ) ) == null ) {
             return false;
         }
 
@@ -95,17 +64,6 @@ class Webhook {
 
     public function webhooks() {
         if ( empty( $this->pub ) || empty( $this->secret ) ) {
-            $this->error = 'Please specify both the API key and secret';
-            return false;
-        }
-
-        if ( ! function_exists( 'curl_init' ) ) {
-            $this->error = 'cURL is missing!';
-            return false;
-        }
-
-        if ( ! ($ch = curl_init( $this->base . 'api/v1/webhooks' )) ) {
-            $this->error = 'Unable to initiate cURL';
             return false;
         }
 
@@ -114,16 +72,12 @@ class Webhook {
             'x-api-secret: ' . $this->secret
         );
 
-        curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
-        curl_setopt( $ch, CURLOPT_HEADER, false );
-        curl_setopt( $ch, CURLOPT_HTTPGET, true );
-        curl_setopt( $ch, CURLOPT_HTTPHEADER, $headers );
+        $curl = new Curl( $this->base . 'api/v1/webhooks', $headers );
+        if ( $curl->get() === false ) {
+            return false;
+        }
 
-        $data = curl_exec( $ch );
-        $info = curl_getinfo( $ch );
-
-        if ( $info['http_code'] !== 200 || ( $res = json_decode( $data ) ) == null ) {
-            $this->error = 'Unable to talk to the webhook API endpoint. Please verify that you\'ve specified the correct API key and secret.';
+        if ( $curl->info['http_code'] !== 200 || ( $res = json_decode( $curl->data ) ) == null ) {
             return false;
         }
 
@@ -133,17 +87,6 @@ class Webhook {
 
     public function add_webhook( $url ) {
         if ( empty( $url ) || empty( $this->pub ) || empty( $this->secret ) ) {
-            $this->error = 'Please specify both the API key and secret';
-            return false;
-        }
-
-        if ( ! function_exists( 'curl_init' ) ) {
-            $this->error = 'cURL is missing!';
-            return false;
-        }
-
-        if ( ! ( $ch = curl_init( $this->base . 'api/v1/webhooks' ) ) ) {
-            $this->error = 'Unable to initiate cURL';
             return false;
         }
 
@@ -152,20 +95,14 @@ class Webhook {
             'x-api-key: ' . $this->pub,
             'x-api-secret: ' . $this->secret
         );
-        $payload = array(
-            'url' => trim( $url )
-        );
-        curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
-        curl_setopt( $ch, CURLOPT_HEADER, false );
-        curl_setopt( $ch, CURLOPT_HTTPHEADER, $headers );
-        curl_setopt( $ch, CURLOPT_POST, true );
-        curl_setopt( $ch, CURLOPT_POSTFIELDS, json_encode( $payload ) );
+        $payload = json_encode( array( 'url' => trim( $url ) ) );
 
-        $data = curl_exec( $ch );
-        $info = curl_getinfo( $ch );
+        $curl = new Curl( $this->base . 'api/v1/webhooks', $headers );
+        if ( $curl->post( $payload ) === false ) {
+            return false;
+        }
 
-        if ( $info['http_code'] !== 200 || ( $res = json_decode( $data ) ) == null ) {
-            $this->error = 'Unable to talk to the webhook API endpoint. Please verify that you\'ve specified the correct API key and secret.';
+        if ( $curl->info['http_code'] !== 200 || ( $res = json_decode( $curl->data ) ) == null ) {
             return false;
         }
 
