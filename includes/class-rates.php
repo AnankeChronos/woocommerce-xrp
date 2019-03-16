@@ -7,13 +7,13 @@ class Rates {
 
 
     public function eurusd() {
-        $curl = new Curl( 'https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml' );
-        if ( $curl->get() === false ) {
+        $res = wp_remote_get( 'https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml' );
+        if ( is_wp_error( $res ) || $res['response']['code'] !== 200 ) {
             return false;
         }
 
         /* use regex instead of SimpleXML to have less dependencies */
-        if ( ! preg_match( "/\<Cube currency='USD' rate='([^']+)'\/\>/", $curl->data, $match ) ) {
+        if ( ! preg_match( "/\<Cube currency='USD' rate='([^']+)'\/\>/", $res['body'], $match ) ) {
             return false;
         }
 
@@ -66,12 +66,8 @@ class Rates {
         } else {
             return false;
         }
-        $curl = new Curl( $url );
-        if ( $curl->get() === false ) {
-            return false;
-        }
-
-        if ( $curl->info['http_code'] !== 200 || ( $rate = json_decode( $curl->data ) ) == null ) {
+        $res = wp_remote_get( $url );
+        if ( is_wp_error( $res ) || $res['response']['code'] !== 200 || ( $rate = json_decode( $res['body'] ) ) == null ) {
             return false;
         }
 
@@ -87,12 +83,8 @@ class Rates {
         } else {
             return false;
         }
-        $curl = new Curl( $url );
-        if ( $curl->get() === false ) {
-            return false;
-        }
-
-        if ( $curl->info['http_code'] !== 200 || ( $rate = json_decode( $curl->data ) ) == null ) {
+        $res = wp_remote_get( $url );
+        if ( is_wp_error( $res ) || $res['response']['code'] !== 200 || ( $rate = json_decode( $res['body'] ) ) == null ) {
             return false;
         }
 
@@ -105,12 +97,8 @@ class Rates {
 
 
     private function bitfinex() {
-        $curl = new Curl( 'https://api.bitfinex.com/v1/pubticker/xrpusd' );
-        if ( $curl->get() === false ) {
-            return false;
-        }
-
-        if ( $curl->info['http_code'] !== 200 || ( $rate = json_decode( $curl->data ) ) == null ) {
+        $res = wp_remote_get( 'https://api.bitfinex.com/v1/pubticker/xrpusd' );
+        if ( is_wp_error( $res ) || $res['response']['code'] !== 200 || ( $rate = json_decode( $res['body'] ) ) == null ) {
             return false;
         }
 
@@ -125,12 +113,8 @@ class Rates {
 
 
     private function bittrex() {
-        $curl = new Curl( 'https://api.bittrex.com/api/v1.1/public/getticker?market=USD-XRP' );
-        if ( $curl->get() === false ) {
-            return false;
-        }
-
-        if ( $curl->info['http_code'] !== 200 || ( $rate = json_decode( $curl->data ) ) == null ) {
+        $res = wp_remote_get( 'https://api.bittrex.com/api/v1.1/public/getticker?market=USD-XRP' );
+        if ( is_wp_error( $res ) || $res['response']['code'] !== 200 || ( $rate = json_decode( $res['body'] ) ) == null ) {
             return false;
         }
 
@@ -145,23 +129,14 @@ class Rates {
 
 
     private function bitmex() {
-        $curl = new Curl( 'https://www.bitmex.com/api/v1/orderBook/L2?symbol=xbt&depth=1' );
-        if ( $curl->get() === false ) {
+        $res = wp_remote_get( 'https://www.bitmex.com/api/v1/orderBook/L2?symbol=xbt&depth=1' );
+        if ( is_wp_error( $res ) || $res['response']['code'] !== 200 || ( $rate = json_decode( $res['body'] ) ) == null ) {
             return false;
         }
-
-        if ( $curl->info['http_code'] !== 200 || ( $rate = json_decode( $curl->data ) ) == null ) {
-            return false;
-        }
-
         $btc = $rate[0]->price;
 
-        $curl = new Curl( 'https://www.bitmex.com/api/v1/orderBook/L2?symbol=xrp&depth=1' );
-        if ( $curl->get() === false ) {
-            return false;
-        }
-
-        if ( $curl->info['http_code'] !== 200 || ( $rate = json_decode( $curl->data ) ) == null ) {
+        $res = wp_remote_get( 'https://www.bitmex.com/api/v1/orderBook/L2?symbol=xrp&depth=1' );
+        if ( is_wp_error( $res ) || $res['response']['code'] !== 200 || ( $rate = json_decode( $res['body'] ) ) == null ) {
             return false;
         }
 
@@ -176,12 +151,8 @@ class Rates {
 
 
     private function binance() {
-        $curl = new Curl( 'https://api.binance.com/api/v3/ticker/price?symbol=XRPUSDT' );
-        if ( $curl->get() === false ) {
-            return false;
-        }
-
-        if ( $curl->info['http_code'] !== 200 || ( $rate = json_decode( $curl->data ) ) == null ) {
+        $res = wp_remote_get( 'https://api.binance.com/api/v3/ticker/price?symbol=XRPUSDT' );
+        if ( is_wp_error( $res ) || $res['response']['code'] !== 200 || ( $rate = json_decode( $res['body'] ) ) == null ) {
             return false;
         }
 

@@ -4,7 +4,7 @@ class Webhook {
 
     protected $pub;
     protected $secret;
-    public $base = 'https://webhook.xrpayments.co/';
+    public $base = 'https://webhook.xrpayments.co/api/v1/';
     public $error = null;
 
 
@@ -20,20 +20,15 @@ class Webhook {
         }
 
         $headers = array(
-            'x-api-key: ' . $this->pub,
-            'x-api-secret: ' . $this->secret
+            'x-api-key' => $this->pub,
+            'x-api-secret' => $this->secret
         );
-
-        $curl = new Curl( $this->base . 'api/v1/subscriptions', $headers );
-        if ( $curl->get() === false ) {
+        $res = wp_remote_get( $this->base . 'subscriptions', array( 'headers' => $headers ) );
+        if ( is_wp_error( $res ) || $res['response']['code'] !== 200 || ( $data = json_decode( $res['body'] ) ) == null ) {
             return false;
         }
 
-        if ( $curl->info['http_code'] !== 200 || ( $res = json_decode( $curl->data ) ) == null ) {
-            return false;
-        }
-
-        return $res->subscriptions;
+        return $data->subscriptions;
     }
 
 
@@ -43,22 +38,21 @@ class Webhook {
         }
 
         $headers = array(
-            'Content-Type: application/json; charset=utf-8',
-            'x-api-key: ' . $this->pub,
-            'x-api-secret: ' . $this->secret
+            'Content-Type' => 'application/json; charset=utf-8',
+            'x-api-key' => $this->pub,
+            'x-api-secret' => $this->secret
         );
         $payload = json_encode( array( 'address' => trim( $address ) ) );
 
-        $curl = new Curl( $this->base . 'api/v1/subscriptions', $headers );
-        if ( $curl->post( $payload ) === false ) {
+        $res = wp_remote_post( $this->base . 'subscriptions', array(
+            'headers' => $headers,
+            'body' => $payload
+        ) );
+        if ( is_wp_error( $res ) || $res['response']['code'] !== 200 || ( $data = json_decode( $res['body'] ) ) == null ) {
             return false;
         }
 
-        if ( $curl->info['http_code'] !== 200 || ( $res = json_decode( $curl->data ) ) == null ) {
-            return false;
-        }
-
-        return $res->subscription_id;
+        return $data->subscription_id;
     }
 
 
@@ -66,22 +60,16 @@ class Webhook {
         if ( empty( $this->pub ) || empty( $this->secret ) ) {
             return false;
         }
-
         $headers = array(
-            'x-api-key: ' . $this->pub,
-            'x-api-secret: ' . $this->secret
+            'x-api-key' => $this->pub,
+            'x-api-secret' => $this->secret
         );
-
-        $curl = new Curl( $this->base . 'api/v1/webhooks', $headers );
-        if ( $curl->get() === false ) {
+        $res = wp_remote_get( $this->base . 'webhooks', array( 'headers' => $headers ) );
+        if ( is_wp_error( $res ) || $res['response']['code'] !== 200 || ( $data = json_decode( $res['body'] ) ) == null ) {
             return false;
         }
 
-        if ( $curl->info['http_code'] !== 200 || ( $res = json_decode( $curl->data ) ) == null ) {
-            return false;
-        }
-
-        return $res->webhooks;
+        return $data->webhooks;
     }
 
 
@@ -91,21 +79,19 @@ class Webhook {
         }
 
         $headers = array(
-            'Content-Type: application/json; charset=utf-8',
-            'x-api-key: ' . $this->pub,
-            'x-api-secret: ' . $this->secret
+            'Content-Type' => 'application/json; charset=utf-8',
+            'x-api-key' => $this->pub,
+            'x-api-secret' => $this->secret
         );
         $payload = json_encode( array( 'url' => trim( $url ) ) );
-
-        $curl = new Curl( $this->base . 'api/v1/webhooks', $headers );
-        if ( $curl->post( $payload ) === false ) {
+        $res = wp_remote_post( $this->base . 'webhooks', array(
+            'headers' => $headers,
+            'body' => $payload
+        ) );
+        if ( is_wp_error( $res ) || $res['response']['code'] !== 200 || ( $data = json_decode( $res['body'] ) ) == null ) {
             return false;
         }
 
-        if ( $curl->info['http_code'] !== 200 || ( $res = json_decode( $curl->data ) ) == null ) {
-            return false;
-        }
-
-        return $res->webhook_id;
+        return $data->webhook_id;
     }
 }

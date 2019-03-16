@@ -2,8 +2,8 @@
 /**
  * Plugin Name: WooCommerce XRP
  * Plugin URI: http://github.com/empatogen/woocommerce-xrp
- * Description: Your extension's description text.
- * Version: 1.0.0
+ * Description: A payment gateway for WooCommerce to accept <a href="https://ripple.com/xrp">XRP</a> payments.
+ * Version: 1.0.2
  * Author: Jesper Wallin
  * Author URI: https://ifconfig.se/
  * Developer: Jesper Wallin
@@ -24,7 +24,6 @@ if ( ! in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins',
     return;
 }
 
-include_once dirname( __FILE__ ) . '/includes/class-curl.php';
 include_once dirname( __FILE__ ) . '/includes/class-webhooks.php';
 include_once dirname( __FILE__ ) . '/includes/class-rates.php';
 
@@ -46,7 +45,7 @@ function wc_gateway_xrp_load_text_domain() {
  *
  * @class       WC_Gateway_XRP
  * @extends     WC_Payment_Gateway
- * @version     1.0.0
+ * @version     1.0.2
  * @package     WooCommerce/Classes/Payment
  * @author      Jesper Wallin
  */
@@ -78,9 +77,7 @@ function wc_gateway_xrp_init() {
                 return true;
             }
 
-            if ( ! function_exists( 'curl_init' ) ) {
-                add_action( 'admin_notices', array( $this, 'require_curl' ) );
-            } elseif ( empty( $this->settings['xrp_account'] ) || empty( $this->settings['xrpl_webhook_api_pub'] ) || empty( $this->settings['xrpl_webhook_api_priv'] ) ) {
+            if ( empty( $this->settings['xrp_account'] ) || empty( $this->settings['xrpl_webhook_api_pub'] ) || empty( $this->settings['xrpl_webhook_api_priv'] ) ) {
                  add_action( 'admin_notices', array( $this, 'require_xrp' ) );
             } elseif ( $this->check_webhooks() === false ) {
                  add_action( 'admin_notices', array( $this, 'invalid_xrp' ) );
@@ -116,14 +113,6 @@ function wc_gateway_xrp_init() {
          */
         public function invalid_xrp() {
             _e( '<div class="notice notice-error"><p>The specified <b>XRP Account</b> and/or <b>XRPL Webhook</b> details are invalid. Please correct these for the <b>XRP Payment Gateway</b> to work properly.</p></div>', 'wc-gateway-xrp' );
-        }
-
-
-        /**
-         * Display an error explaining that cURL is required.
-         */
-        public function require_curl() {
-            _e( '<div class="notice notice-error"><p>You must have <b>cURL</b> installed for the <b>XRP Payment Gateway</b> to work properly.</p></div>', 'wc-gateway-xrp' );
         }
 
 
@@ -222,7 +211,7 @@ function wc_gateway_xrp_init() {
                 'xrp' => array(
                     'title'       => __( 'XRP Account', 'wc-gateway-xrp' ),
                     'type'        => 'title',
-                    'description' => __( 'Please specify the XRP Ledger account where your payments should be sent.', 'wc-gateway-xrp' ),
+                    'description' => __( 'Please specify the XRP Ledger account where your payments should be sent. This should be an account <b>YOU</b> own and should <b>NOT</b> be an exchange account, since a unique destination tag is generated for each order.', 'wc-gateway-xrp' ),
                 ),
 
                 'xrp_account' => array(
@@ -266,6 +255,15 @@ function wc_gateway_xrp_init() {
                     'type'        => 'text',
                     'description' => __( 'Which XRP node to use when checking our balance.', 'wc-gateway-xrp' ),
                     'default'     => 'https://s2.ripple.com:51234',
+                    'desc_tip'    => true,
+                ),
+
+                'xrp_bypass' => array(
+                    'title'       => __( 'Bypass firewall', 'wc-gateway-xrp' ),
+                    'type'        => 'checkbox',
+                    'label'   => __( 'Use a proxy to bypass your webservers firewall.', 'wc-gateway-xrp' ),
+                    'description' => 'This is useful if your webserver does not allow outbound traffic on non-standard ports.',
+                    'default'     => 'no',
                     'desc_tip'    => true,
                 ),
 
@@ -332,6 +330,7 @@ function wc_gateway_xrp_init() {
             $order->add_meta_data( 'total_amount', $xrp );
             $order->add_meta_data( 'destination_tag', $tag );
             $order->add_meta_data( 'delivered_amount', '0' );
+            $order->add_meta_data( 'xrp_rate', $rate );
             $order->save_meta_data();
 
             WC()->cart->empty_cart();
@@ -363,7 +362,7 @@ function wc_gateway_xrp_init() {
                 $limit = 10;
             }
 
-            $payload = [
+            $payload = json_encode( [
                 'method' => 'account_tx',
                 'params' => [[
                     'account' => $account,
@@ -371,20 +370,24 @@ function wc_gateway_xrp_init() {
                     'ledger_index_max' => -1,
                     'limit' => $limit,
                 ]]
-            ];
+            ] );
 
-            $curl = new Curl( $node );
-            $curl->post( json_encode( $payload ) );
+            $bypass  = $this->get_option( 'xrp_bypass' );
+            $headers = array();
+            if ( $bypass == 'yes' ) {
+                $node = sprintf( 'https://cors-anywhere.herokuapp.com/%s', $node );
+                $headers = array( 'origin' => get_site_url() );
+            }
 
-            if ( $curl->info['http_code'] !== 200 || ( $res = json_decode( $curl->data ) ) == null ) {
+            $res = wp_remote_post( $node, array( 'body' => $payload, 'headers' => $headers ) );
+            if ( is_wp_error( $res ) || $res['response']['code'] !== 200 || ( $ledger = json_decode( $res['body'] ) ) == null ) {
                 echo "unable to reach the XRP ledger.";
                 exit;
             }
-
-            $rev = array_reverse( $res->result->transactions );
+            $rev = array_reverse( $ledger->result->transactions );
 
             foreach ( $rev as $tx ) {
-                if ( $tx->tx->TransactionType != 'Payment' || $tx->tx->Destination != $account || !isset( $tx->tx->DestinationTag ) || $tx->tx->DestinationTag == 0 ) {
+                if ( $tx->tx->TransactionType != 'Payment' || $tx->tx->Destination != $account || !isset( $tx->tx->DestinationTag ) || $tx->tx->DestinationTag == 0 || !isset( $tx->meta->delivered_amount ) ) {
                     continue;
                 }
                 $orders = wc_get_orders( array( 'destination_tag' => $tx->tx->DestinationTag ) );
@@ -413,7 +416,7 @@ function wc_gateway_xrp_init() {
 
                 /* update the delivered_amount */
                 $delivered_amount = $orders[0]->get_meta( 'delivered_amount' );
-                $delivered_amount += $tx->tx->Amount / 1000000;
+                $delivered_amount += $tx->meta->delivered_amount / 1000000;
                 $orders[0]->update_meta_data( 'delivered_amount', $delivered_amount );
                 $orders[0]->save_meta_data();
 

@@ -1,0 +1,216 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Woo-Commerce XRP Gateway\n"
+"POT-Creation-Date: 2019-03-12 11:23+0100\n"
+"PO-Revision-Date: 2019-03-15 19:14+0100\n"
+"Last-Translator: \n"
+"Language-Team: Jens Twesmann\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.2.1\n"
+"X-Poedit-Basepath: ..\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-KeywordsList: __;_e;_n:1,2;_x:1,2c;_ex:1,2c;_nx:4c,1,2;esc_attr__;"
+"esc_attr_e;esc_attr_x:1,2c;esc_html__;esc_html_e;esc_html_x:1,2c;_n_noop:1,2;"
+"_nx_noop:3c,1,2;__ngettext_noop:1,2\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPathExcluded-0: *.js\n"
+
+#: woocommerce-xrp.php:57 woocommerce-xrp.php:208
+msgid "XRP"
+msgstr "XRP"
+
+#: woocommerce-xrp.php:58
+msgid "Let your customers pay using the XRP Ledger."
+msgstr "Erlaube deinen Kunden die Bezahlung über den XRP Ledger."
+
+#: woocommerce-xrp.php:98
+msgid ""
+"<div class=\"notice notice-error\"><p>Your current currency is not supported "
+"yet. Please use <b>USD</b> or <b>EUR</b> with for now.</p></div>"
+msgstr ""
+"<div class=\"notice notice-error\"><p>Deine aktuelle Währung wird noch nicht "
+"unterstützt. Bitte nutze aktuell <b>USD</b> oder <b>EUR</b>.</p></div>"
+
+#: woocommerce-xrp.php:106
+msgid ""
+"<div class=\"notice notice-error\"><p>Before you can use this payment "
+"gateway, you <b>must</b> specify a <b>XRP Account</b> and your <b>XRPL "
+"Webhook</b> details.</p></div>"
+msgstr ""
+"<div class=\"notice notice-error\"><p>Bevor du die Zahlart nutzen kannst "
+"<b>musst</b> du ein <b>XRP Account</b> angeben, sowie deine <b>XRPL Webhook</"
+"b> Details.</p></div>"
+
+#: woocommerce-xrp.php:114
+msgid ""
+"<div class=\"notice notice-error\"><p>The specified <b>XRP Account</b> and/"
+"or <b>XRPL Webhook</b> details are invalid. Please correct these for the "
+"<b>XRP Payment Gateway</b> to work properly.</p></div>"
+msgstr ""
+"<div class=\"notice notice-error\"><p> Die angegebenen <b>XRP Account</b> "
+"und/oder <b>XRPL Webhook Details</b> sind nicht korrekt. Bitte korrigiere "
+"diese um die <b>Zahlungsart XRP</b> korrekt anbieten zu können.</p></div>"
+
+#: woocommerce-xrp.php:122
+msgid ""
+"<div class=\"notice notice-error\"><p>You must have <b>cURL</b> installed "
+"for the <b>XRP Payment Gateway</b> to work properly.</p></div>"
+msgstr ""
+"<div class=\"notice notice-error\"><p>Du benötigst <b>cURL</b> damit die "
+"Zahlungsart <b>XRP</b> korrekt funktioniert.</p></div>"
+
+#: woocommerce-xrp.php:198
+msgid "Enable/Disable"
+msgstr "Aktivieren/Deaktivieren"
+
+#: woocommerce-xrp.php:200
+msgid "Enable XRP Payments"
+msgstr "Aktiviere XRP Zahlungen"
+
+#: woocommerce-xrp.php:205
+msgid "Title"
+msgstr "Titel"
+
+#: woocommerce-xrp.php:207
+msgid ""
+"This controls the title for the payment method the customer sees during "
+"checkout."
+msgstr ""
+"Gib den Titel für die Zahlungsmethode an. Diesen sieht der Kunde beim "
+"Checkout."
+
+#: woocommerce-xrp.php:213
+msgid "Description"
+msgstr "Beschreibung"
+
+#: woocommerce-xrp.php:215
+msgid "Payment method description that the customer will see on your checkout."
+msgstr "Diese Beschreibung sieht der Kunde beim Checkout."
+
+#: woocommerce-xrp.php:216
+msgid "Pay using the XRP ledger."
+msgstr "Zahle mit Nutzung des XRP Ledgers."
+
+#: woocommerce-xrp.php:221 woocommerce-xrp.php:227 woocommerce-xrp.php:480
+msgid "XRP Account"
+msgstr "XRP Account"
+
+#: woocommerce-xrp.php:223
+msgid ""
+"Please specify the XRP Ledger account where your payments should be sent."
+msgstr "Bitte den XRP Account angeben der die Zahlungen erhalten soll."
+
+#: woocommerce-xrp.php:229
+msgid "Your XRP account where payments should be sent."
+msgstr "Dieser XRP Account erhält die Zahlungen."
+
+#: woocommerce-xrp.php:235
+msgid "XRPL Webhook options"
+msgstr "XRPL Webhook Optionen"
+
+#: woocommerce-xrp.php:237
+msgid ""
+"In order to create your webhook and process your payments properly, please "
+"specify your XRPL Webhooks API key. For more informations how to obtain "
+"these keys, please visit <a href=\"https://webhook.xrpayments.co/\">https://"
+"webhook.xrpayments.co</a>."
+msgstr ""
+"Damit der Prozess und die XRPL Webhooks korrekt funktionieren gebe bitte "
+"deinen API Key ein. Für weitere Informationen besuche bitte: <a href="
+"\"https://webhook.xrpayments.co/\"> https://webhook.xrpayments.co </a>."
+
+#: woocommerce-xrp.php:241
+msgid "API Key"
+msgstr "API Key"
+
+#: woocommerce-xrp.php:243
+msgid "Your XRPL XRPayments Webhook API key."
+msgstr "Dein XRPL XRPayments Webhook API Key."
+
+#: woocommerce-xrp.php:249
+msgid "API Secret"
+msgstr "API Secret"
+
+#: woocommerce-xrp.php:251
+msgid "Your XRPL XRPayments Webhook API secret."
+msgstr "Dein XRPL XRPayments Webhook API secret."
+
+#: woocommerce-xrp.php:257
+msgid "Advanced"
+msgstr "Fortgeschritten"
+
+#: woocommerce-xrp.php:259
+msgid "Leave these untouched unless you really know what you're doing."
+msgstr "Belasse diese Einstellungen, es sei denn du weißt genau was du tust."
+
+#: woocommerce-xrp.php:263
+msgid "XRP Node"
+msgstr "XRP Node"
+
+#: woocommerce-xrp.php:265
+msgid "Which XRP node to use when checking our balance."
+msgstr "Welcher XRP Node soll zur Abfrage deines Kontos verwendet werden."
+
+#: woocommerce-xrp.php:270
+msgid "Transaction Limit"
+msgstr "Transaktionslimit"
+
+#: woocommerce-xrp.php:272
+msgid ""
+"The number of transactions to fetch from the ledger each time we check for "
+"new payments."
+msgstr ""
+"Anzahl der abzurufenden Transaktionen vom XRPL bei jedem check neuer "
+"Zahlungen."
+
+#: woocommerce-xrp.php:471
+msgid "XRP payment details"
+msgstr "XRP Zahlungsdetails"
+
+#: woocommerce-xrp.php:484
+msgid "Destination tag"
+msgstr "Destination Tag"
+
+#: woocommerce-xrp.php:488
+msgid "XRP total"
+msgstr "Gesamt XRP"
+
+#: woocommerce-xrp.php:492
+msgid "XRP received"
+msgstr "XRP erhalten"
+
+#: woocommerce-xrp.php:496
+msgid "XRP left to pay"
+msgstr "XRP nach zu zahlen"
+
+#: woocommerce-xrp.php:500
+msgid "Order status"
+msgstr "Bestellstatus"
+
+#~ msgid "Let your customers pay using the XRP Ledger"
+#~ msgstr "Laissez vos clients payer avec le Ledger XRP"
+
+#~ msgid "Pending payment"
+#~ msgstr "En attente de paiement"
+
+#~ msgid "Processing (Paid)"
+#~ msgstr "Traitement (payé)"
+
+#~ msgid "On hold"
+#~ msgstr "En attente"
+
+#~ msgid "Completed"
+#~ msgstr "Terminé"
+
+#~ msgid "Cancelled"
+#~ msgstr "Annulé"
+
+#~ msgid "Refunded"
+#~ msgstr "Remboursé"
+
+#~ msgid "Failed"
+#~ msgstr "Échoué"
