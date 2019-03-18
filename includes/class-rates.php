@@ -1,19 +1,81 @@
 <?php
 
 class Rates {
+    private $ecb_cache = 'woo_ecb_rates.xml';
+
+
     public function __construct( $base_currency ) {
         $this->base_currency = strtoupper($base_currency);
     }
 
 
-    public function eurusd() {
-        $res = wp_remote_get( 'https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml' );
-        if ( is_wp_error( $res ) || $res['response']['code'] !== 200 ) {
+    public function supported() {
+        return in_array( $this->base_currency, [
+            'USD','JPY','BGN','CZK','DKK','GBP','HUF','PLN','RON','SEK','CHF',
+            'ISK','NOK','HRK','RUB','TRY','AUD','BRL','CAD','CNY','HKD','IDR',
+            'ILS','INR','KRW','MXN','MYR','NZD','PHP','SGD','THB','ZAR'
+        ]);
+    }
+
+
+    private function get_ecb_rates() {
+        if ( ( $data = $this->get_ecb_cache() ) === false ) {
+            $res = wp_remote_get( 'https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml' );
+            if ( is_wp_error( $res ) || $res['response']['code'] !== 200 ) {
+                return false;
+            }
+            if ( ( $data = $this->set_ecb_cache( $res['body'] ) ) === false ) {
+                return false;
+            }
+        }
+
+        return $data;
+    }
+
+
+    private function set_ecb_cache( $data ) {
+        $cache = get_temp_dir() . $this->ecb_cache;
+        if ( ( $fh = fopen( $cache, 'w+' ) ) === false ) {
+            return false;
+        }
+        if ( fwrite( $fh, $data ) === false ) {
+            return false;
+        }
+        fclose( $fh );
+        touch( $cache );
+
+        return $data;
+    }
+
+
+    private function get_ecb_cache() {
+        $cache = get_temp_dir() . $this->ecb_cache;
+        if ( !file_exists( $cache ) || !is_readable( $cache ) ) {
+            return false;
+        }
+        if (filemtime( $this->cache ) < strtotime( 'today 16:00:00 CET' ) && date('N') <= 5 ) {
             return false;
         }
 
-        /* use regex instead of SimpleXML to have less dependencies */
-        if ( ! preg_match( "/\<Cube currency='USD' rate='([^']+)'\/\>/", $res['body'], $match ) ) {
+        if ( ( $fh = fopen( $cache, 'r' ) ) === false ) {
+            return false;
+        }
+        $data = fread( $fh, filesize( $cache ) );
+        fclose( $fh );
+
+        return $data;
+    }
+
+
+    public function eur( $currency ) {
+        if ( ( $data = $this->get_ecb_rates() ) === false ) {
+            return false;
+        }
+        $regex = sprintf(
+            "/\<Cube currency='%s' rate='([^']+)'\/\>/",
+            preg_quote( $currency )
+        );
+        if ( ! preg_match( $regex, $data, $match ) ) {
             return false;
         }
 
@@ -21,22 +83,53 @@ class Rates {
     }
 
 
+    private function to_base( $rate, $src ) {
+        if ( empty($rate) || empty($src) ) {
+            return false;
+        }
+
+        if ( $src === $this->base_currency ) {
+            return (float)$rate;
+        }
+
+        if ( ( $eur = $this->eur( $this->base_currency ) ) === false ) {
+            return false;
+        }
+
+        if ( $src == 'EUR' ) {
+            return (float)($rate * $eur);
+        }
+
+        if ( $src != 'USD' || ( ( $usd = $this->eur( 'USD' ) ) === false ) ) {
+            return false;
+        }
+
+        return ($rate / $usd) * $eur;
+    }
+
+
     public function get_rate( $exchange ) {
         switch ($exchange) {
-            case 'bitstamp':
-                $rate = $this->bitstamp();
-                break;
             case 'binance':
                 $rate = $this->binance();
                 break;
             case 'bitfinex':
                 $rate = $this->bitfinex();
                 break;
-            case 'bittrex':
-                $rate = $this->bittrex();
+            case 'bitlish':
+                $rate = $this->bitlish();
                 break;
             case 'bitmex':
                 $rate = $this->bitmex();
+                break;
+            case 'bitstamp':
+                $rate = $this->bitstamp();
+                break;
+            case 'bittrex':
+                $rate = $this->bittrex();
+                break;
+            case 'bxinth':
+                $rate = $this->bxinth();
                 break;
             case 'kraken':
                 $rate = $this->kraken();
@@ -59,40 +152,42 @@ class Rates {
 
 
     private function bitstamp() {
-        if ( $this->base_currency === 'EUR' ) {
-            $url = 'https://www.bitstamp.net/api/v2/ticker/xrpeur/';
-        } elseif ( $this->base_currency === 'USD' ) {
+        if ( $this->base_currency === 'USD' ) {
             $url = 'https://www.bitstamp.net/api/v2/ticker/xrpusd/';
+            $src = 'USD';
         } else {
-            return false;
+            $url = 'https://www.bitstamp.net/api/v2/ticker/xrpeur/';
+            $src = 'EUR';
         }
         $res = wp_remote_get( $url );
         if ( is_wp_error( $res ) || $res['response']['code'] !== 200 || ( $rate = json_decode( $res['body'] ) ) == null ) {
             return false;
         }
 
-        return (float)$rate->last;
+        return $this->to_base( $rate->last, $src );
     }
 
 
     private function kraken() {
-        if ( $this->base_currency === 'EUR' ) {
-            $url = 'https://api.kraken.com/0/public/Ticker?pair=XRPEUR';
-        } elseif ( $this->base_currency === 'USD' ) {
+        if ( $this->base_currency === 'USD' ) {
             $url = 'https://api.kraken.com/0/public/Ticker?pair=XRPUSD';
+            $src = 'USD';
         } else {
-            return false;
+            $url = 'https://api.kraken.com/0/public/Ticker?pair=XRPEUR';
+            $src = 'EUR';
         }
         $res = wp_remote_get( $url );
         if ( is_wp_error( $res ) || $res['response']['code'] !== 200 || ( $rate = json_decode( $res['body'] ) ) == null ) {
             return false;
         }
 
+        /* ugly? */
         foreach ($rate->result as $rate) {
-            return (float)$rate->c[0];
+            $rate = (float)$rate->c[0];
+            break;
         };
 
-        return false;
+        return $this->to_base( $rate, $src );
     }
 
 
@@ -102,13 +197,7 @@ class Rates {
             return false;
         }
 
-        if ( $this->base_currency === 'USD' ) {
-            return (float)$rate->last_price;
-        } elseif ( $this->base_currency === 'EUR' && ( $usd = $this->eurusd() ) !== false ) {
-            return (float)( $rate->last_price / $usd );
-        } else {
-            return false;
-        }
+        return $this->to_base( $rate->last_price, 'USD' );
     }
 
 
@@ -118,13 +207,7 @@ class Rates {
             return false;
         }
 
-        if ( $this->base_currency === 'USD' ) {
-            return (float)$rate->result->Last;
-        } elseif ( $this->base_currency === 'EUR' && ( $usd = $this->eurusd() ) !== false ) {
-            return (float)( $rate->result->Last / $usd );
-        } else {
-            return false;
-        }
+        return $this->to_base( $rate->result->Last, 'USD' );
     }
 
 
@@ -140,13 +223,7 @@ class Rates {
             return false;
         }
 
-        if ( $this->base_currency === 'USD' ) {
-            return (float)( $btc * $rate[0]->price );
-        } elseif ( $this->base_currency === 'EUR' && ( $usd = $this->eurusd() ) !== false ) {
-            return (float)( ( $btc * $rate[0]->price) / $usd );
-        } else {
-            return false;
-        }
+        return $this->to_base( ( $btc * $rate[0]->price ), 'USD' );
     }
 
 
@@ -156,12 +233,43 @@ class Rates {
             return false;
         }
 
-        if ( $this->base_currency === 'USD' ) {
-            return (float)$rate->price;
-        } elseif ( $this->base_currency === 'EUR' && ( $usd = $this->eurusd() ) !== false ) {
-            return (float)( $rate->price / $usd );
-        } else {
+        return $this->to_base( $rate->price, 'USD' );
+    }
+
+
+    private function bxinth() {
+        $res = wp_remote_get( 'https://bx.in.th/api/' );
+        if ( is_wp_error( $res ) || $res['response']['code'] !== 200 || ( $rate = json_decode( $res['body'] ) ) == null ) {
             return false;
         }
+
+        /* ugly? */
+        foreach ( $rate as $r ) {
+            if ( $r->primary_currency === 'THB' && $r->secondary_currency === 'XRP' ) {
+                $rate = $r->last_price;
+                break;
+            }
+        }
+
+        return $this->to_base( $rate, 'THB' );
     }
+
+
+    private function bitlish() {
+        $res = wp_remote_get( 'https://bitlish.com/api/v1/tickers' );
+        if ( is_wp_error( $res ) || $res['response']['code'] !== 200 || ( $rate = json_decode( $res['body'] ) ) == null ) {
+            return false;
+        }
+
+        if ( $this->base_currency === 'GBP' ) {
+            $rate = $rate->xrpgbp->last;
+            $src = 'GBP';
+        } else {
+            $rate = $rate->xrpeur->last;
+            $src = 'EUR';
+        }
+
+        return $this->to_base( $rate, $src );
+    }
+
 }

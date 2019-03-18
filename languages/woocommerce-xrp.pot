@@ -4,183 +4,183 @@ msgid ""
 msgstr ""
 "Project-Id-Version: WooCommerce XRP 1.0.2\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/woocommerce-xrp\n"
-"Last-Translator: Jesper Wallin <jesper@ifconfig.se>\n"
-"Language-Team: sv <jesper@ifconfig.se>\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2019-03-17T19:46:33+00:00\n"
-"PO-Revision-Date: 2019-03-17T19:46:33+00:00\n"
+"POT-Creation-Date: 2019-03-17T19:58:11+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.1.0\n"
 "X-Domain: wc-gateway-xrp\n"
 
 #. Plugin Name of the plugin
 msgid "WooCommerce XRP"
-msgstr "WooCommerce XRP"
+msgstr ""
 
 #. Plugin URI of the plugin
 msgid "http://github.com/empatogen/woocommerce-xrp"
-msgstr "http://github.com/empatogen/woocommerce-xrp"
+msgstr ""
 
 #. Description of the plugin
 msgid "A payment gateway for WooCommerce to accept <a href=\"https://ripple.com/xrp\">XRP</a> payments."
-msgstr "En betallösning till WooCommerce för att kunna ta betalt med <a href=\"https://ripple.com/xrp\">XRP</a>."
+msgstr ""
 
 #. Author of the plugin
 msgid "Jesper Wallin"
-msgstr "Jesper Wallin"
+msgstr ""
 
 #. Author URI of the plugin
 msgid "https://ifconfig.se/"
-msgstr "https://ifconfig.se/"
+msgstr ""
 
 #: woocommerce-xrp.php:60
 #: woocommerce-xrp.php:199
 msgid "XRP"
-msgstr "XRP"
+msgstr ""
 
 #: woocommerce-xrp.php:61
 msgid "Let your customers pay using the XRP Ledger."
-msgstr "Gör det möjligt för dina kunder att betala med XRP"
+msgstr ""
 
 #: woocommerce-xrp.php:99
 msgid "<div class=\"notice notice-error\"><p><b>WooCommerce XRP</b> does not support the <b>currency</b> your shop is using.</p></div>"
-msgstr "<div class=\"notice notice-error\"><p><b>WooCommerce XRP</b> stödjer inte den <b>valuta</b> som din butik använder.</p></div>"
+msgstr ""
 
 #: woocommerce-xrp.php:107
 msgid "<div class=\"notice notice-error\"><p><b>WooCommerce XRP</b> requires you to specify a <b>XRP Account</b> and your <b>XRPL Webhook</b> details.</p></div>"
-msgstr "<div class=\"notice notice-error\"><p><b>WooCommerce XRP</b> kräver att du anger ditt <b>XRP-konto</b> samt dina uppgifter för <b>XRPL Webhook</b> kopplingen.</p></div>"
+msgstr ""
 
 #: woocommerce-xrp.php:115
 msgid "<div class=\"notice notice-error\"><p>The specified <b>XRP Account</b> and/or <b>XRPL Webhook</b> details are invalid. Please correct these for <b>WooCommerce XRP</b> to work properly.</p></div>"
-msgstr "<div class=\"notice notice-error\"><p>Det angivna b>XRP-kontot</b> och/eller uppgifterna för <b>XRPL Webhook</b> kopplingen är felaktiga. Vänligen korrigera dessa för att <b>WooCommerce XRP</b> ska fungera korrekt.</p></div>"
+msgstr ""
 
 #: woocommerce-xrp.php:189
 msgid "Enable/Disable"
-msgstr "På/Av"
+msgstr ""
 
 #: woocommerce-xrp.php:191
 msgid "Enable XRP Payments"
-msgstr "Aktivera XRP-betalningar"
+msgstr ""
 
 #: woocommerce-xrp.php:196
 msgid "Title"
-msgstr "Rubrik"
+msgstr ""
 
 #: woocommerce-xrp.php:198
 msgid "This controls the title for the payment method the customer sees during checkout."
-msgstr "Denna text anger vad som visas för kunden på utcheckningsidan."
+msgstr ""
 
 #: woocommerce-xrp.php:204
 msgid "Description"
-msgstr "Beskrivning"
+msgstr ""
 
 #: woocommerce-xrp.php:206
 msgid "Payment method description that the customer will see on your checkout."
-msgstr "Beskrivning av XRP som betalmetod. Detta syns på utcheckningssida."
+msgstr ""
 
 #: woocommerce-xrp.php:207
 msgid "Payment instruction will be shown once you've placed your order."
-msgstr "Inbetalningsuppgifterna syns för efter att du beställt din order."
+msgstr ""
 
 #: woocommerce-xrp.php:212
 #: woocommerce-xrp.php:218
 #: woocommerce-xrp.php:505
 msgid "XRP Account"
-msgstr "XRP-konto"
+msgstr ""
 
 #: woocommerce-xrp.php:214
 msgid "Please specify the XRP Ledger account where your payments should be sent. This should be an account <b>YOU</b> own and should <b>NOT</b> be an exchange account, since a unique destination tag is generated for each order."
-msgstr "Ange det XRP-konto dit betalningar ska skickas. Detta måste vara ett konto som <b>DU</b> äger och du kan <b>INTE</b> använda ett exchange-konto pga att varje order får en unik destinations tagg."
+msgstr ""
 
 #: woocommerce-xrp.php:220
 msgid "Your XRP account where payments should be sent."
-msgstr "Ange det XRP-konto dit betalningar ska skickas."
+msgstr ""
 
 #: woocommerce-xrp.php:226
 msgid "XRPL Webhook options"
-msgstr "Inställningar för XRPL Webhooks"
+msgstr ""
 
 #: woocommerce-xrp.php:228
 msgid "In order to create your webhook and process your payments properly, please specify your XRPL Webhooks API key. For more informations how to obtain these keys, please visit <a href=\"https://webhook.xrpayments.co/\">https://webhook.xrpayments.co</a>."
-msgstr "För att kunna skapa en webhook och hantera betalningar korrekt, vänligen ange dina XRPL Webhook API nycklar. För mer information om hur du hämtar dessa, besök <a href=\"https://webhook.xrpayments.co/\">https://webhook.xrpayments.co</a>."
+msgstr ""
 
 #: woocommerce-xrp.php:232
 msgid "API Key"
-msgstr "API-nyckel"
+msgstr ""
 
 #: woocommerce-xrp.php:234
 msgid "Your XRPL XRPayments Webhook API key."
-msgstr "Din XRPL XRPayments Webhook API-nyckel."
+msgstr ""
 
 #: woocommerce-xrp.php:240
 msgid "API Secret"
-msgstr "API-lösenord"
+msgstr ""
 
 #: woocommerce-xrp.php:242
 msgid "Your XRPL XRPayments Webhook API secret."
-msgstr "Din XRPL XRPayments Webhook API lösenord."
+msgstr ""
 
 #: woocommerce-xrp.php:248
 msgid "Advanced"
-msgstr "Avancerat"
+msgstr ""
 
 #: woocommerce-xrp.php:250
 msgid "Leave these untouched unless you really know what you're doing."
-msgstr "Om du är osäker på vad detta är så lämna det orört."
+msgstr ""
 
 #: woocommerce-xrp.php:254
 msgid "XRP Node"
-msgstr "XRP-nod"
+msgstr ""
 
 #: woocommerce-xrp.php:256
 msgid "Which XRP node to use when checking our balance."
-msgstr "Vilken XRP-nod ska användas för att uppdatera vårt saldo."
+msgstr ""
 
 #: woocommerce-xrp.php:263
 msgid "Bypass firewall"
-msgstr "Kringgå brandvägg"
+msgstr ""
 
 #: woocommerce-xrp.php:265
 msgid "Use a proxy to bypass your webservers firewall."
-msgstr "Använd en proxy för att kringgå din webservers brandvägg."
+msgstr ""
 
 #: woocommerce-xrp.php:272
 msgid "Exchange"
-msgstr "Marknadsplats"
+msgstr ""
 
 #: woocommerce-xrp.php:274
 msgid "Which exchange to use when fetching the XRP rate."
-msgstr "Vilken markandsplats ska användas för att hämta XRP-kursen."
+msgstr ""
 
 #: woocommerce-xrp.php:290
 msgid "Transaction Limit"
-msgstr "Transaktionsgräns"
+msgstr ""
 
 #: woocommerce-xrp.php:292
 msgid "The number of transactions to fetch from the ledger each time we check for new payments."
-msgstr "Antalet transaktioner som ska hämtas från XRP nätverket verjar gång en betalning läses in."
+msgstr ""
 
 #: woocommerce-xrp.php:496
 msgid "XRP payment details"
-msgstr "Inbetalningsuppgifter för XRP"
+msgstr ""
 
 #: woocommerce-xrp.php:509
 msgid "Destination tag"
-msgstr "Destinations-tagg"
+msgstr ""
 
 #: woocommerce-xrp.php:513
 msgid "XRP total"
-msgstr "XRP totalbelopp"
+msgstr ""
 
 #: woocommerce-xrp.php:517
 msgid "XRP received"
-msgstr "XRP mottaget"
+msgstr ""
 
 #: woocommerce-xrp.php:521
 msgid "XRP left to pay"
-msgstr "XRP kvar att betala"
+msgstr ""
 
 #: woocommerce-xrp.php:525
 msgid "Order status"
-msgstr "Orderstatus"
+msgstr ""
